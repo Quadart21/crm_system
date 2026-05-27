@@ -1,0 +1,1 @@
+ALTER TABLE "Batch" ADD COLUMN "warehouseWorkCost" REAL NOT NULL DEFAULT 0;

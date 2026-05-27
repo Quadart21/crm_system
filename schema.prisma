@@ -1,0 +1,302 @@
+generator client {
+  provider   = "prisma-client"
+  output     = "./generated"
+  engineType = "client"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DB_FILE_NAME")
+}
+
+model User {
+  // Adaptive AI platform columns (do not change)
+  id     String  @id
+  name   String?
+  image  String?
+  handle String?
+}
+
+model Employee {
+  id             String   @id @default(cuid())
+  login          String   @unique
+  password       String
+  role           String
+  status         String   @default("ACTIVE")
+  handBalance    Float    @default(0)
+  depositBalance Float    @default(0)
+  bankBalance    Float    @default(0)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+}
+
+model City {
+  id        String   @id @default(cuid())
+  name      String   @unique
+  status    String   @default("ACTIVE")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Product {
+  id        String   @id @default(cuid())
+  name      String   @unique
+  status    String   @default("ACTIVE")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model CityProductSetting {
+  id        String   @id @default(cuid())
+  cityId    String
+  productId String
+  mode      String
+  status    String   @default("ACTIVE")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([cityId, productId, mode])
+}
+
+model PriceRate {
+  id        String   @id @default(cuid())
+  cityId    String
+  productId String
+  mode      String
+  weight    Float
+  price     Float
+  createdAt DateTime @default(now())
+
+  @@unique([cityId, productId, mode, weight])
+}
+
+model StashType {
+  id        String   @id @default(cuid())
+  cityId    String
+  productId String
+  mode      String
+  name      String
+  surcharge Float    @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Marketplace {
+  id        String   @id @default(cuid())
+  name      String   @unique
+  status    String   @default("ACTIVE")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Batch {
+  id             String    @id @default(cuid())
+  name           String
+  cityId         String
+  productId      String
+  weight         Float
+  totalBatchCost Float     @default(0)
+  warehouseWorkCost Float  @default(0)
+  remainingGram  Float
+  costPerGram    Float    @default(0)
+  fasEnabled     Boolean  @default(false)
+  fasCost        Float    @default(0)
+  fasPackages    Int      @default(0)
+  status         String   @default("NEW")
+  courierId      String?
+  issuedAt       DateTime?
+  closedAt       DateTime?
+  closeReason    String?
+  retailCloseSum Float?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+}
+
+model DataEntry {
+  id             String   @id @default(cuid())
+  courierId      String
+  batchId        String
+  cityId         String
+  productId      String
+  mode           String   @default("RETAIL")
+  weightPerAddr  Float
+  stashTypeName  String
+  quantity       Int
+  mpDistribution String
+  grossWeight    Float
+  earnings       Float
+  processed      Boolean  @default(false)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+}
+
+model IssueRecord {
+  id          String    @id @default(cuid())
+  orderNumber String?
+  kind        String
+  courierId   String
+  batchId     String?
+  dataEntryId String?
+  weight      Float
+  marketplace String?
+  stashType   String?
+  retailPrice Float
+  problemIds  String
+  otherText   String?
+  status      String    @default("OPEN")
+  decisionId  String?
+  calcType    String?
+  couponPercent Float?
+  calculationData String?
+  writeOff    Float     @default(0)
+  createdAt   DateTime  @default(now())
+  closedAt    DateTime?
+  updatedAt   DateTime  @updatedAt
+}
+
+model DataEntryIssueAllocation {
+  id            String   @id @default(cuid())
+  dataEntryId   String
+  issueRecordId String   @unique
+  courierId     String
+  cityId        String
+  productId     String
+  batchId       String
+  marketplace   String?
+  stashType     String
+  weight        Float
+  createdAt     DateTime @default(now())
+}
+
+model Penalty {
+  id                String   @id @default(cuid())
+  courierId         String
+  issueId           String?
+  amount            Float
+  applyCourierStatus Boolean @default(false)
+  stashDeduction    Boolean @default(false)
+  reason            String
+  bankWrittenOff    Float   @default(0)
+  depositWrittenOff Float   @default(0)
+  createdAt         DateTime @default(now())
+}
+
+model FinanceProcessing {
+  id           String   @id @default(cuid())
+  dataEntryId  String   @unique
+  courierId    String
+  batchId      String
+  remainingGram Float
+  earnings     Float
+  maxHand      Float
+  handAmount   Float    @default(0)
+  depositAmount Float   @default(0)
+  bankAmount   Float    @default(0)
+  status       String   @default("PENDING")
+  createdAt    DateTime @default(now())
+  processedAt  DateTime?
+}
+
+model FinanceLedger {
+  id        String   @id @default(cuid())
+  employeeId String
+  type      String
+  amount    Float
+  note      String?
+  settlementId String?
+  createdAt DateTime @default(now())
+}
+
+model MonthlySettlement {
+  id                   String   @id @default(cuid())
+  courierId            String
+  periodFrom           DateTime
+  periodTo             DateTime
+  soldQuantity         Int
+  uploadedQuantity     Int
+  disputeCount         Int
+  openDisputeCount     Int      @default(0)
+  ticketCount          Int
+  disputePercent       Float
+  openDisputePercent   Float    @default(0)
+  courierStatusName    String
+  courierStatusRuleId  String?
+  totalDisputeWriteOff Float    @default(0)
+  bonusAmount          Float    @default(0)
+  requestedBankPayout  Float    @default(0)
+  finalBankPayout      Float    @default(0)
+  createdBy            String
+  createdAt            DateTime @default(now())
+}
+
+model SettlementDisputeWriteOff {
+  id              String   @id @default(cuid())
+  settlementId    String
+  issueRecordId   String   @unique
+  courierId       String
+  decisionId      String?
+  retailPrice     Float
+  couponPercent   Float?
+  statusRuleName  String
+  writeOffAmount  Float
+  calculationData String
+  createdAt       DateTime @default(now())
+}
+
+model ProblemType {
+  id        String   @id @default(cuid())
+  name      String   @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model DisputeDecision {
+  id        String   @id @default(cuid())
+  name      String   @unique
+  calcType  String
+  percent   Float    @default(0)
+  manualAmount Float @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model CourierStatusRule {
+  id              String   @id @default(cuid())
+  name            String
+  minPercent      Float
+  maxPercent      Float?
+  description     String
+  paysWhat        String
+  returnRules     String   @default("{}")
+  returnLogic     String   @default("NONE")
+  returnPercent   Float    @default(0)
+  couponRules     String   @default("{}")
+  couponLogic     String   @default("NONE")
+  couponPercent   Float    @default(0)
+  manualMode      Boolean  @default(false)
+  workBlocked     Boolean  @default(false)
+  blockPayouts    Boolean  @default(false)
+  payoutLimit     Float?
+  depositRequired Float    @default(0)
+  extraCriteria   String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
+
+model AppSetting {
+  key       String   @id
+  value     String
+  updatedAt DateTime @updatedAt
+}
+
+model AppLog {
+  id        String   @id @default(cuid())
+  userId    String?
+  userLogin String
+  action    String
+  entity    String
+  details   String
+  oldValue  String?
+  newValue  String?
+  createdAt DateTime @default(now())
+}
